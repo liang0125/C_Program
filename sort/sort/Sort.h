@@ -1,5 +1,6 @@
 #pragma once
 #include<stdio.h>
+#include<malloc.h>
 //插入排序
 void InsertSort(int array[], int size)
 {
@@ -167,7 +168,7 @@ void BubbleSort(int array[], int size)
 		}
 	}
 }
-int Partition(int array[], int left, int right)
+int Partition_01(int array[], int left, int right)
 {
 	int begin = left;
 	int end = right;
@@ -186,9 +187,49 @@ int Partition(int array[], int left, int right)
 	Swap(array + begin, array + right);
 	return begin;
 }
+int Partition_02(int array[], int left, int right)
+{
+	int begin = left;
+	int end = right;
+	int priot = array[right];
+	while (begin < end)
+	{
+		while (begin < end&&array[begin] <= priot)
+		{
+			begin++;
+		}
+		array[end] = array[begin];
+		while (begin < end&&array[end] >= priot)
+		{
+			end--;
+		}
+		array[begin] = array[end];
+	}
+	array[begin] = priot;
+	return begin;
+}
+
+int Partition_03(int array[], int left, int right)
+{
+	int fast = left;
+	int slow = left;
+	while (fast<right)
+	{
+		if (array[fast] < array[right])
+		{
+			Swap(array + fast, array + slow);
+			slow++;
+			fast++;
+		}
+		else {
+			fast++;
+		}
+	}
+	Swap(array + right, array + slow);
+	return slow;
+}
 void _QuickSort(int array[],int left,int right)
 {
-	int div = Partition(array, left, right);
 	if (left == right)
 	{
 		return;
@@ -197,6 +238,7 @@ void _QuickSort(int array[],int left,int right)
 	{
 		return;
 	}
+	int div = Partition_03(array, left, right);
 	_QuickSort(array, left, div - 1);
 	_QuickSort(array, div + 1, right);
 }
@@ -204,10 +246,81 @@ void QuickSort(int array[], int size)
 {
 	_QuickSort(array, 0, size - 1);
 }
+void Merge(int array[], int left,int mid, int right,int a[])
+{
+	int left_i = left;
+	int right_i = mid + 1;
+	int k = left;
+	while (left_i <= mid && right_i <= right) {
+		if (array[left_i] <=array[right_i])
+		{
+			a[k++] = array[left_i++];
+		}
+		else {
+			a[k++] = array[right_i++];
+		}
+	}
+	while (left_i <= mid)
+	{
+		a[k++] = array[left_i++];
+	}
+	while (right_i <= right)
+	{
+		a[k++] = array[right_i++];
+	}
+	for (int i = left; i <= right; i++)
+	{
+		array[i] = a[i];
+	}
+}
+void _MergeSort(int array[], int left, int right,int a[])
+{//分组函数
+	if (left == right)
+	{
+		return;//区间长度为1
+	}
+	if (left > right)
+	{
+		return ;//区间长度为0
+	}
+	int mid = left + (right - left) / 2;
+	_MergeSort(array, left, mid, a);
+	_MergeSort(array, mid + 1, right, a);
+	Merge(array, left, mid, right, a);
+
+}
+
+void MergeSortLoop(int array[],int size ) {
+	int*extra = (int *)malloc(sizeof(int)*size);//用于存放合并后的数组
+	for (int i = 1; i < size; i *= 2)
+	{
+		for (int j = 0; j < size; j = j + 2 * i)
+		{
+			int left = j;
+			int mid = j + i;
+			int right = mid + i;
+			if (mid >= size) {
+				continue;
+			}
+			if (right > size) {
+				right = size;
+			}
+			Merge(array, left,mid-1, right-1, extra);
+		}
+	}
+	free(extra);
+}
+
+void MergeSort(int array[], int size)
+{//接口函数
+	int*a = (int *)malloc(sizeof(int)*size);//用于存放合并后的数组
+	_MergeSort(array, 0, size - 1, a);
+	free(a);
+}
 void test()
 {
 	int array[] = { 3,5,1,4,7,2,6,0,9,8,8 };
 	int size = sizeof(array) / sizeof(int);
-	QuickSort(array, size);
+	MergeSortLoop(array, size);
 	Print(array,size);
 }
